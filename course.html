@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Course - YPSS CLASS</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h2 {
+      background: #8b0000;
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .box {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+    }
+
+    button {
+      padding: 10px;
+      background: #8b0000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #chatBox {
+      height: 250px;
+      overflow-y: auto;
+      background: #eee;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .admin-tag {
+      color: gold;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2 id="title">Loading course...</h2>
+<div id="adminMode"></div>
+
+<div id="content" style="display:none;">
+
+  <div id="materials"></div>
+  <hr>
+
+  <h3>Assignments</h3>
+  <div id="assignments"></div>
+
+  <hr>
+
+  <h3>Submit Assignment</h3>
+  <input id="assignTitle" placeholder="Assignment Title">
+  <textarea id="answerBox" placeholder="Write answer"></textarea>
+  <button onclick="submitAssignment()">Submit</button>
+
+  <div id="mySubmissions"></div>
+
+  <hr>
+
+  <h3>Grades</h3>
+  <div id="grades"></div>
+
+  <hr>
+
+  <h3>Announcements</h3>
+  <div id="announcements"></div>
+
+  <hr>
+
+  <h3>Class Chat</h3>
+  <div id="chatBox"></div>
+
+  <input id="chatInput" placeholder="Message...">
+  <button onclick="sendMessage()">Send</button>
+
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const courseName = params.get("name");
+
+const user = JSON.parse(localStorage.getItem("currentUser"));
+if (!user) {
+  alert("Login first");
+  location.href = "login.html";
+}
+
+const role = user.role || "student";
+
+document.getElementById("title").innerText =
+  courseName ? courseName : "❌ No course selected";
+
+document.getElementById("content").style.display = "block";
+
+if (role === "admin") {
+  document.getElementById("adminMode").innerHTML =
+    `<p class="admin-tag">🛡 ADMIN FULL ACCESS ENABLED</p>`;
+}
+
+/* INIT STORAGE */
+["materials","assignments","submissions","announcements","messages"].forEach(key=>{
+  if (!localStorage.getItem(key)) {
+    localStorage.setItem(key, JSON.stringify([]));
+  }
+});
+
+/* LOAD COURSE */
+function loadCourse() {
+
+  const materials = JSON.parse(localStorage.getItem("materials"))
+    .filter(m => m.courseName === courseName);
+
+  const assignments = JSON.parse(localStorage.getItem("assignments"))
+    .filter(a => a.courseName === courseName);
+
+  const submissions = JSON.parse(localStorage.getItem("submissions"))
+    .filter(s => s.courseName === courseName);
+
+  // materials
+  const mBox = document.getElementById("materials");
+  mBox.innerHTML = "<h3>Materials</h3>";
+  materials.forEach(m=>{
+    mBox.innerHTML += `
+      <div class="box">
+        <b>${m.title || ""}</b>
+        <p>${m.content || ""}</p>
+      </div>`;
+  });
+
+  // assignments
+  const aBox = document.getElementById("assignments");
+  aBox.innerHTML = "";
+  assignments.forEach(a=>{
+    aBox.innerHTML += `
+      <div class="box">
+        <b>${a.title}</b>
+        <p>${a.question}</p>
+      </div>`;
+  });
+
+  // grades
+  const gBox = document.getElementById("grades");
+  gBox.innerHTML = "";
+  submissions.forEach(s=>{
+    if (role === "admin" || s.studentEmail === user.email) {
+      gBox.innerHTML += `
+        <div class="box">
+          <b>${s.assignmentTitle}</b>
+          <p>Grade: ${s.grade || "Pending"}</p>
+        </div>`;
+    }
+  });
+
+  // submissions
+  const sBox = document.getElementById("mySubmissions");
+  sBox.innerHTML = "<h4>Submissions</h4>";
+  submissions.forEach(s=>{
+    if (role === "admin" || s.studentEmail === user.email) {
+      sBox.innerHTML += `
+        <div class="box">
+          <b>${s.assignmentTitle}</b>
+          <p>${s.answer}</p>
+        </div>`;
+    }
+  });
+}
+
+/* ANNOUNCEMENTS */
+function loadAnnouncements() {
+  const list = JSON.parse(localStorage.getItem("announcements"))
+    .filter(a => a.courseName === courseName);
+
+  const box = document.getElementById("announcements");
+  box.innerHTML = "";
+
+  list.forEach(a=>{
+    box.innerHTML += `<div class="box">${a.message}</div>`;
+  });
+}
+
+/* CHAT */
+function loadMessages() {
+  const msgs = JSON.parse(localStorage.getItem("messages"))
+    .filter(m => m.courseName === courseName);
+
+  const box = document.getElementById("chatBox");
+  box.innerHTML = "";
+
+  msgs.forEach(m=>{
+    box.innerHTML += `
+      <div class="box">
+        <b>${m.sender} (${m.role})</b><br>
+        ${m.text}
+      </div>`;
+  });
+
+  box.scrollTop = box.scrollHeight;
+}
+
+function sendMessage() {
+  const text = document.getElementById("chatInput").value;
+  if (!text) return;
+
+  let msgs = JSON.parse(localStorage.getItem("messages"));
+
+  msgs.push({
+    courseName,
+    sender: user.email,
+    role,
+    text,
+    time: Date.now()
+  });
+
+  localStorage.setItem("messages", JSON.stringify(msgs));
+  document.getElementById("chatInput").value = "";
+
+  loadMessages();
+}
+
+/* SUBMIT */
+function submitAssignment() {
+
+  if (role === "admin") {
+    alert("Admin does not submit assignments.");
+    return;
+  }
+
+  let subs = JSON.parse(localStorage.getItem("submissions"));
+
+  subs.push({
+    courseName,
+    assignmentTitle: document.getElementById("assignTitle").value,
+    answer: document.getElementById("answerBox").value,
+    studentEmail: user.email,
+    createdAt: new Date()
+  });
+
+  localStorage.setItem("submissions", JSON.stringify(subs));
+
+  alert("Submitted ✅");
+  loadCourse();
+}
+
+/* INIT LOAD */
+loadCourse();
+loadAnnouncements();
+loadMessages();
+</script>
+
+</body>
+</html>

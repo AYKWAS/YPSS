@@ -1,0 +1,191 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6fb;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+/* ================= LOGIN / SIGNUP ================= */
+.container {
+  background: white;
+  padding: 25px;
+  margin: 100px auto;
+  width: 320px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  border-radius: 10px;
+}
+
+input {
+  width: 90%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  outline: none;
+}
+
+input:focus {
+  border-color: #2b6cff;
+}
+
+/* ================= BUTTONS ================= */
+button {
+  padding: 10px 20px;
+  background: #2b6cff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #1a4ed8;
+}
+
+/* ================= NAVBAR ================= */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #2b6cff;
+  color: white;
+  padding: 15px 20px;
+}
+
+/* ================= COURSE GRID ================= */
+#courses {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+  padding: 20px;
+}
+
+.course {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  transition: 0.2s;
+}
+
+.course:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+/* ================= TEXT ================= */
+h2, h3 {
+  color: #333;
+}
+
+/* ================= CHAT ================= */
+.chat-box {
+  height: 400px;
+  overflow-y: auto;
+  background: #e5ddd5;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.msg {
+  max-width: 70%;
+  padding: 8px 12px;
+  margin: 5px;
+  border-radius: 10px;
+  font-size: 14px;
+  word-wrap: break-word;
+}
+
+.me {
+  background: #dcf8c6;
+  align-self: flex-end;
+  text-align: right;
+}
+
+.other {
+  background: white;
+  align-self: flex-start;
+}
+
+.time {
+  font-size: 10px;
+  opacity: 0.6;
+  text-align: right;
+}
+
+.status {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.chat-input-area {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.chat-input-area input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+}
+
+.chat-input-area button {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  background: #2b6cff;
+  color: white;
+  cursor: pointer;
+}
+
+#typing {
+  font-size: 12px;
+  font-style: italic;
+  height: 20px;
+}
+
+/* ================= CARDS ================= */
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin: 10px 0;
+}
+
+/* ================= BADGES ================= */
+.badge {
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: white;
+}
+
+.pending { background: orange; }
+.approved { background: green; }
+.rejected { background: red; }
+.paid { background: blue; }
+
+/* ================= DROPDOWN ================= */
+.dropdown {
+  background: white;
+  border: 1px solid #ccc;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 5px;
+}
+
+.dropdown div {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.dropdown div:hover {
+  background: #f0f0f0;
+}

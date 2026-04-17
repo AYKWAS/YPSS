@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>YPSS SUPER ADMIN</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin:0;
+      font-family:Arial;
+      background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+      color:white;
+    }
+
+    header {
+      padding:20px;
+      text-align:center;
+      font-size:24px;
+      font-weight:bold;
+      background:rgba(0,0,0,0.5);
+    }
+
+    .main { padding:20px; }
+
+    .card {
+      background:rgba(255,255,255,0.08);
+      padding:18px;
+      border-radius:14px;
+      margin-bottom:20px;
+      backdrop-filter:blur(10px);
+      box-shadow:0 10px 25px rgba(0,0,0,0.4);
+    }
+
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+      gap:20px;
+    }
+
+    button {
+      padding:8px 12px;
+      border:none;
+      border-radius:6px;
+      margin:5px;
+      background:#00c6ff;
+      cursor:pointer;
+      font-weight:bold;
+    }
+
+    button:hover {
+      opacity:0.9;
+    }
+
+    input {
+      padding:8px;
+      border-radius:6px;
+      border:none;
+      margin:5px;
+    }
+
+    .item {
+      background:rgba(255,255,255,0.1);
+      padding:10px;
+      margin:5px 0;
+      border-radius:8px;
+    }
+
+    .quick-btns button {
+      background:linear-gradient(135deg,#ff7b00,#ff3c00);
+    }
+  </style>
+</head>
+
+<body>
+
+<header>🔥 YPSS SUPER ADMIN CONTROL CENTER</header>
+
+<div class="main">
+
+<!-- ⚡ QUICK ACCESS PANEL -->
+<div class="card">
+  <h3>⚡ Quick Access</h3>
+  <div class="quick-btns">
+    <button onclick="go('dashboard.html')">🎓 Student Dashboard</button>
+    <button onclick="go('lecturer.html')">👨‍🏫 Lecturer Dashboard</button>
+    <button onclick="go('admin.html')">🛡️ Admin Panel</button>
+  </div>
+</div>
+
+<div class="grid">
+
+  <!-- 📚 COURSES -->
+  <div class="card">
+    <h3>📚 Course Management</h3>
+    <input id="cName" placeholder="Course Name">
+    <button onclick="addCourse()">Add Course</button>
+    <div id="courses"></div>
+  </div>
+
+  <!-- 👥 USERS -->
+  <div class="card">
+    <h3>👥 Users</h3>
+    <div id="users"></div>
+  </div>
+
+  <!-- ⏳ APPROVAL -->
+  <div class="card">
+    <h3>⏳ Pending Users</h3>
+    <div id="pending"></div>
+  </div>
+
+  <!-- 💰 PAYMENTS -->
+  <div class="card">
+    <h3>💰 Payments</h3>
+    <div id="payments"></div>
+  </div>
+
+  <!-- 📢 ANNOUNCEMENTS -->
+  <div class="card">
+    <h3>📢 Announcement</h3>
+    <input id="msg" placeholder="Write announcement...">
+    <button onclick="post()">Send</button>
+  </div>
+
+</div>
+
+<button onclick="logout()">Logout</button>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+/* 🔐 FAKE AUTH CHECK */
+const user = JSON.parse(localStorage.getItem("currentUser"));
+
+if (!user || user.role !== "admin") {
+  alert("Access denied");
+  location.href = "login.html";
+}
+
+/* NAVIGATION */
+function go(page){
+  location.href = page;
+}
+
+/* INIT STORAGE (first time use) */
+if (!localStorage.getItem("users")) localStorage.setItem("users", JSON.stringify([]));
+if (!localStorage.getItem("courses")) localStorage.setItem("courses", JSON.stringify([]));
+if (!localStorage.getItem("pending")) localStorage.setItem("pending", JSON.stringify([]));
+if (!localStorage.getItem("payments")) localStorage.setItem("payments", JSON.stringify([]));
+if (!localStorage.getItem("announcements")) localStorage.setItem("announcements", JSON.stringify([]));
+
+/* LOAD DATA */
+function loadAll(){
+  loadCourses();
+  loadUsers();
+  loadPending();
+  loadPayments();
+}
+
+/* COURSES */
+function loadCourses(){
+  const courses = JSON.parse(localStorage.getItem("courses"));
+  $("courses").innerHTML = "";
+
+  courses.forEach((c, i) => {
+    $("courses").innerHTML += `
+      <div class="item">
+        ${c.name}
+        <button onclick="delCourse(${i})">Delete</button>
+      </div>`;
+  });
+}
+
+function addCourse(){
+  const courses = JSON.parse(localStorage.getItem("courses"));
+  courses.push({ name: $("cName").value });
+
+  localStorage.setItem("courses", JSON.stringify(courses));
+  $("cName").value = "";
+  loadCourses();
+}
+
+function delCourse(index){
+  let courses = JSON.parse(localStorage.getItem("courses"));
+  courses.splice(index, 1);
+
+  localStorage.setItem("courses", JSON.stringify(courses));
+  loadCourses();
+}
+
+/* USERS */
+function loadUsers(){
+  const users = JSON.parse(localStorage.getItem("users"));
+  $("users").innerHTML = "";
+
+  users.forEach((u, i) => {
+    $("users").innerHTML += `
+      <div class="item">
+        ${u.name} (${u.role})
+        <br>
+        <button onclick="makeAdmin(${i})">Make Admin</button>
+        <button onclick="removeUser(${i})">Delete</button>
+      </div>`;
+  });
+}
+
+function makeAdmin(index){
+  let users = JSON.parse(localStorage.getItem("users"));
+  users[index].role = "admin";
+
+  localStorage.setItem("users", JSON.stringify(users));
+  loadUsers();
+}
+
+function removeUser(index){
+  let users = JSON.parse(localStorage.getItem("users"));
+  users.splice(index, 1);
+
+  localStorage.setItem("users", JSON.stringify(users));
+  loadUsers();
+}
+
+/* PENDING USERS */
+function loadPending(){
+  const pending = JSON.parse(localStorage.getItem("pending"));
+  $("pending").innerHTML = "";
+
+  pending.forEach((u, i) => {
+    $("pending").innerHTML += `
+      <div class="item">
+        ${u.name}
+        <button onclick="approve(${i})">Approve</button>
+        <button onclick="reject(${i})">Reject</button>
+      </div>`;
+  });
+}
+
+function approve(index){
+  let pending = JSON.parse(localStorage.getItem("pending"));
+  let users = JSON.parse(localStorage.getItem("users"));
+
+  const data = pending[index];
+
+  users.push({
+    name: data.name,
+    phone: data.phone,
+    role: "student",
+    regNo: "YPSS-" + Date.now()
+  });
+
+  pending.splice(index, 1);
+
+  localStorage.setItem("users", JSON.stringify(users));
+  localStorage.setItem("pending", JSON.stringify(pending));
+
+  loadPending();
+  loadUsers();
+}
+
+function reject(index){
+  let pending = JSON.parse(localStorage.getItem("pending"));
+  pending.splice(index, 1);
+
+  localStorage.setItem("pending", JSON.stringify(pending));
+  loadPending();
+}
+
+/* PAYMENTS */
+function loadPayments(){
+  const payments = JSON.parse(localStorage.getItem("payments"));
+  $("payments").innerHTML = "";
+
+  payments.forEach((p, i) => {
+    $("payments").innerHTML += `
+      <div class="item">
+        ${p.courseName} (${p.status})
+        <br>
+        <button onclick="approvePayment(${i})">
+          Approve Payment
+        </button>
+      </div>`;
+  });
+}
+
+function approvePayment(index){
+  let payments = JSON.parse(localStorage.getItem("payments"));
+
+  payments[index].status = "paid";
+
+  localStorage.setItem("payments", JSON.stringify(payments));
+  loadPayments();
+
+  alert("Payment approved");
+}
+
+/* ANNOUNCEMENTS */
+function post(){
+  let announcements = JSON.parse(localStorage.getItem("announcements"));
+
+  announcements.push({
+    message: $("msg").value,
+    createdAt: new Date()
+  });
+
+  localStorage.setItem("announcements", JSON.stringify(announcements));
+  $("msg").value = "";
+  alert("Announcement posted");
+}
+
+/* LOGOUT */
+function logout(){
+  localStorage.removeItem("currentUser");
+  location.href = "login.html";
+}
+
+/* START */
+loadAll();
+</script>
+
+</body>
+</html>

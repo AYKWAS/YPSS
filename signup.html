@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>YPSS CLASS - Signup</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #8b0000, #2b2b2b);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 14px;
+      width: 360px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      text-align: center;
+    }
+
+    h2 {
+      color: #8b0000;
+      margin-bottom: 15px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 11px;
+      background: #8b0000;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .checkbox {
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      text-align: left;
+      margin: 6px 0;
+      gap: 6px;
+    }
+
+    #msg {
+      color: red;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>Create Account</h2>
+
+  <input type="text" id="name" placeholder="Full Name">
+  <input type="text" id="regNo" placeholder="Registration Number (e.g YPSS-001)">
+  <input type="text" id="phone" placeholder="Phone Number">
+  <input type="password" id="password" placeholder="Password">
+  <input type="password" id="confirmPassword" placeholder="Confirm Password">
+
+  <select id="role">
+    <option value="">Select Role</option>
+    <option value="student">Student</option>
+    <option value="lecturer">Lecturer</option>
+  </select>
+
+  <input type="text" id="courses" placeholder="Courses (e.g Math, ICT, Physics)">
+  <input type="text" id="school" placeholder="Former School">
+
+  <div class="checkbox">
+    <input type="checkbox" id="terms">
+    <label>I agree to YPSS Class rules</label>
+  </div>
+
+  <p id="msg"></p>
+
+  <button onclick="signup()">Sign Up</button>
+</div>
+
+<script>
+/* INIT STORAGE */
+if (!localStorage.getItem("users")) {
+  localStorage.setItem("users", JSON.stringify([]));
+}
+
+/* SIGNUP */
+function signup() {
+
+  const name = document.getElementById("name").value.trim();
+  const regNo = document.getElementById("regNo").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const confirmPassword = document.getElementById("confirmPassword").value.trim();
+  const role = document.getElementById("role").value;
+  const courses = document.getElementById("courses").value.trim();
+  const school = document.getElementById("school").value.trim();
+  const terms = document.getElementById("terms").checked;
+  const msg = document.getElementById("msg");
+
+  msg.innerText = "";
+
+  if (!name || !regNo || !phone || !password || !confirmPassword || !role) {
+    msg.innerText = "Please fill all required fields";
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    msg.innerText = "Passwords do not match";
+    return;
+  }
+
+  if (!terms) {
+    msg.innerText = "You must agree to rules";
+    return;
+  }
+
+  let users = JSON.parse(localStorage.getItem("users"));
+
+  // check duplicate regNo
+  if (users.find(u => u.regNo === regNo)) {
+    msg.innerText = "Registration number already exists";
+    return;
+  }
+
+  const newUser = {
+    id: Date.now(),
+    name,
+    regNo,
+    phone,
+    password,
+    role,
+    courses,
+    school,
+    createdAt: new Date()
+  };
+
+  users.push(newUser);
+
+  localStorage.setItem("users", JSON.stringify(users));
+
+  alert("Account created successfully 🎉");
+
+  location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>YPSS CLASS Admission</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: linear-gradient(135deg, #f4f6f9, #e9eef5);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .box {
+      background: white;
+      width: 420px;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      animation: fade 0.5s ease;
+    }
+
+    @keyframes fade {
+      from {opacity:0; transform: translateY(15px);}
+      to {opacity:1; transform: translateY(0);}
+    }
+
+    h2 {
+      text-align: center;
+      color: #8b0000;
+      margin-bottom: 15px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      transition: 0.3s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: #8b0000;
+      box-shadow: 0 0 6px rgba(139,0,0,0.2);
+      outline: none;
+    }
+
+    button {
+      background: #8b0000;
+      color: white;
+      padding: 12px;
+      border: none;
+      width: 100%;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #a00000;
+      transform: scale(1.02);
+    }
+
+    #msg {
+      text-align: center;
+      margin-top: 10px;
+      color: green;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>🎓 Admission Form</h2>
+
+  <input id="fullName" placeholder="Full Name">
+  <input id="email" placeholder="Email">
+  <input id="phone" placeholder="Phone">
+  <input id="age" placeholder="Age">
+
+  <input id="school" placeholder="Previous School">
+
+  <select id="course">
+    <option value="">Select Course</option>
+    <option>Computer Science</option>
+    <option>Business</option>
+    <option>Education</option>
+  </select>
+
+  <textarea id="grades" placeholder="Academic Records"></textarea>
+
+  <button onclick="apply()">Submit Application</button>
+
+  <p id="msg"></p>
+</div>
+
+<script>
+/* INIT STORAGE */
+if (!localStorage.getItem("applications")) {
+  localStorage.setItem("applications", JSON.stringify([]));
+}
+
+/* APPLY FUNCTION */
+function apply() {
+
+  const fullName = document.getElementById("fullName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const age = document.getElementById("age").value.trim();
+  const school = document.getElementById("school").value.trim();
+  const course = document.getElementById("course").value.trim();
+  const grades = document.getElementById("grades").value.trim();
+
+  if (!fullName || !email || !phone || !age || !school || !course) {
+    document.getElementById("msg").innerText = "Please fill all required fields";
+    return;
+  }
+
+  let applications = JSON.parse(localStorage.getItem("applications"));
+
+  applications.push({
+    fullName,
+    email,
+    phone,
+    age,
+    previousSchool: school,
+    courseApplied: course,
+    grades,
+    status: "pending",
+    paymentStatus: "unpaid",
+    createdAt: new Date()
+  });
+
+  localStorage.setItem("applications", JSON.stringify(applications));
+
+  document.getElementById("msg").innerText = "Application submitted successfully 🎉";
+
+  // clear form
+  document.querySelectorAll("input, textarea").forEach(i => i.value = "");
+  document.getElementById("course").value = "";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>YPSS CLASS - Student Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin:0;
+      font-family:Arial;
+      background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+      color:white;
+    }
+
+    .sidebar {
+      width:220px;
+      height:100vh;
+      background:#8b0000;
+      position:fixed;
+      padding:20px;
+    }
+
+    .main {
+      margin-left:240px;
+      padding:20px;
+    }
+
+    .card {
+      background: rgba(0,0,0,0.5);
+      padding:18px;
+      border-radius:15px;
+      margin-bottom:15px;
+    }
+
+    .course {
+      background: rgba(255,255,255,0.05);
+      padding:15px;
+      border-radius:12px;
+      margin-bottom:10px;
+      border-left:5px solid #00c6ff;
+    }
+
+    button {
+      background: linear-gradient(135deg,#00c6ff,#0072ff);
+      color:white;
+      border:none;
+      padding:10px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      margin-top:5px;
+    }
+
+    select {
+      padding:10px;
+      border-radius:8px;
+      margin-top:6px;
+      width:100%;
+    }
+
+    .chat-box {
+      height:180px;
+      overflow-y:auto;
+      background:#111;
+      padding:10px;
+      border-radius:10px;
+      margin-bottom:10px;
+    }
+
+    .msg {
+      font-size:13px;
+      margin-bottom:6px;
+    }
+
+    .admin-badge {
+      color: yellow;
+      margin-top:10px;
+      font-size:13px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <h2>🎓 YPSS</h2>
+  <p onclick="logout()" style="cursor:pointer;">🚪 Logout</p>
+  <div id="adminBadge"></div>
+</div>
+
+<div class="main">
+
+  <div class="card">
+    <h3>📚 Courses</h3>
+    <div id="courses"></div>
+  </div>
+
+  <div class="card">
+    <h3>📢 Announcements</h3>
+    <div id="announcements"></div>
+  </div>
+
+  <div class="card">
+    <h3>📝 My Grades</h3>
+    <div id="grades"></div>
+  </div>
+
+  <div class="card">
+    <h3>💬 Chat</h3>
+    <div id="chatBox" class="chat-box"></div>
+    <input id="msg" placeholder="Type message..." style="width:80%;padding:10px;">
+    <button onclick="sendMsg()">Send</button>
+  </div>
+
+</div>
+
+<script>
+const user = JSON.parse(localStorage.getItem("currentUser"));
+
+if (!user) {
+  alert("Login first");
+  location.href = "login.html";
+}
+
+const userRole = user.role || "student";
+
+/* ADMIN BADGE */
+if (userRole === "admin") {
+  document.getElementById("adminBadge").innerHTML =
+    "<div class='admin-badge'>🛡 ADMIN FULL ACCESS ENABLED</div>";
+}
+
+/* INIT STORAGE */
+["courses","announcements","submissions","messages"].forEach(key=>{
+  if (!localStorage.getItem(key)) {
+    localStorage.setItem(key, JSON.stringify([]));
+  }
+});
+
+/* COURSES */
+function loadCourses(){
+
+  const courses = JSON.parse(localStorage.getItem("courses"));
+
+  const box = document.getElementById("courses");
+  box.innerHTML = "";
+
+  courses.forEach(c => {
+
+    let status = "locked";
+
+    // check payments
+    const payments = JSON.parse(localStorage.getItem("payments")) || [];
+    const paid = payments.find(p =>
+      p.courseName === c.name &&
+      p.userEmail === user.email &&
+      p.status === "paid"
+    );
+
+    if (paid) status = "paid";
+
+    // ADMIN BYPASS
+    if (userRole === "admin") status = "paid";
+
+    box.innerHTML += `
+      <div class="course">
+        <h3>${c.name}</h3>
+
+        <p>
+          ${status === "paid" ? "✅ Access Granted" :
+            "🔒 Locked"}
+        </p>
+
+        <button onclick="openCourse('${c.name}')">
+          ${status === "locked" && userRole !== "admin" ? "Locked" : "Enter"}
+        </button>
+      </div>
+    `;
+  });
+}
+
+/* ANNOUNCEMENTS */
+function loadAnnouncements(){
+  const list = JSON.parse(localStorage.getItem("announcements"));
+
+  const box = document.getElementById("announcements");
+  box.innerHTML = "";
+
+  list.forEach(a=>{
+    box.innerHTML += `<div>📢 ${a.message}</div>`;
+  });
+}
+
+/* GRADES */
+function loadGrades(){
+  const subs = JSON.parse(localStorage.getItem("submissions"));
+
+  const box = document.getElementById("grades");
+  box.innerHTML = "";
+
+  subs.forEach(s=>{
+    if (s.studentEmail === user.email) {
+      box.innerHTML += `<div>${s.courseName || ""} - ${s.grade || "Pending"}</div>`;
+    }
+  });
+}
+
+/* CHAT */
+function loadChat(){
+  const msgs = JSON.parse(localStorage.getItem("messages"));
+
+  const box = document.getElementById("chatBox");
+  box.innerHTML = "";
+
+  msgs.forEach(m=>{
+    box.innerHTML += `<div class="msg"><b>${m.sender}</b>: ${m.text}</div>`;
+  });
+
+  box.scrollTop = box.scrollHeight;
+}
+
+function sendMsg(){
+  const input = document.getElementById("msg");
+  if(!input.value) return;
+
+  let msgs = JSON.parse(localStorage.getItem("messages"));
+
+  msgs.push({
+    sender: user.email,
+    text: input.value,
+    time: Date.now()
+  });
+
+  localStorage.setItem("messages", JSON.stringify(msgs));
+  input.value="";
+
+  loadChat();
+}
+
+/* OPEN COURSE */
+function openCourse(name){
+  if (!name) return alert("Course missing");
+  location.href = "course.html?name=" + encodeURIComponent(name);
+}
+
+/* LOGOUT */
+function logout(){
+  localStorage.removeItem("currentUser");
+  location.href = "login.html";
+}
+
+/* LOAD ALL */
+loadCourses();
+loadAnnouncements();
+loadGrades();
+loadChat();
+</script>
+
+</body>
+</html>

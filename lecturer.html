@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>YPSS CLASS - Lecturer Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body { margin:0; font-family:Arial; background:#0f2027; color:white; }
+
+    .sidebar {
+      width:220px; height:100vh;
+      background:#8b0000; position:fixed;
+      padding:20px;
+    }
+
+    .main { margin-left:240px; padding:20px; }
+
+    .card {
+      background:#1c1c1c;
+      padding:15px;
+      border-radius:10px;
+      margin-bottom:15px;
+    }
+
+    button {
+      background:#00c6ff;
+      border:none;
+      padding:8px 12px;
+      border-radius:6px;
+      cursor:pointer;
+      margin-top:5px;
+    }
+
+    input, textarea, select {
+      width:100%;
+      padding:10px;
+      margin:5px 0;
+      border-radius:6px;
+      border:none;
+    }
+
+    @media(max-width:768px){
+      .sidebar{display:none;}
+      .main{margin:0;}
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <h2>👨‍🏫 Lecturer</h2>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<div class="main">
+
+  <div class="card">
+    <h3>📚 Courses</h3>
+    <div id="courses"></div>
+  </div>
+
+  <div class="card">
+    <h3 id="selected">Select Course</h3>
+
+    <input id="matTitle" placeholder="Title">
+    <select id="matType">
+      <option value="note">Note</option>
+      <option value="youtube">YouTube</option>
+      <option value="link">Link</option>
+      <option value="video">Video URL</option>
+    </select>
+
+    <input id="matContent" placeholder="Content / URL">
+    <button onclick="addMaterial()">Add Content</button>
+  </div>
+
+  <div class="card">
+    <h3>📢 Post Announcement</h3>
+    <textarea id="announce"></textarea>
+    <button onclick="postAnnouncement()">Post</button>
+  </div>
+
+  <div class="card">
+    <h3>📝 Student Submissions</h3>
+    <div id="submissions"></div>
+  </div>
+
+  <div class="card">
+    <h3>🎥 Live Class (Zoom)</h3>
+    <input id="zoomLink" placeholder="Paste Zoom link">
+    <button onclick="saveZoom()">Start Class</button>
+  </div>
+
+  <div class="card">
+    <h3>🧾 Generate Result Slip</h3>
+    <input id="studentEmail" placeholder="Student Email">
+    <button onclick="generateSlip()">Generate</button>
+  </div>
+
+</div>
+
+<script>
+const user = JSON.parse(localStorage.getItem("currentUser"));
+
+if (!user) {
+  alert("Login required");
+  location.href = "login.html";
+}
+
+if (user.role !== "lecturer" && user.role !== "admin") {
+  alert("Access denied");
+  location.href = "dashboard.html";
+}
+
+let selectedCourse = "";
+
+/* INIT STORAGE */
+["courses","materials","submissions","announcements","liveClasses"].forEach(k=>{
+  if(!localStorage.getItem(k)){
+    localStorage.setItem(k, JSON.stringify([]));
+  }
+});
+
+/* COURSES */
+function loadCourses(){
+  const courses = JSON.parse(localStorage.getItem("courses"));
+
+  let html = "";
+  courses.forEach(c=>{
+    html += `<div onclick="selectCourse('${c.name}')">${c.name}</div>`;
+  });
+
+  document.getElementById("courses").innerHTML = html;
+}
+
+function selectCourse(name){
+  selectedCourse = name;
+  document.getElementById("selected").innerText = name;
+}
+
+/* MATERIALS */
+function addMaterial(){
+  if(!selectedCourse) return alert("Select course");
+
+  let materials = JSON.parse(localStorage.getItem("materials"));
+
+  materials.push({
+    courseName: selectedCourse,
+    title: matTitle.value,
+    type: matType.value,
+    content: matContent.value,
+    createdBy: user.email,
+    createdAt: new Date()
+  });
+
+  localStorage.setItem("materials", JSON.stringify(materials));
+
+  alert("Content added ✅");
+}
+
+/* ANNOUNCEMENTS */
+function postAnnouncement(){
+  let list = JSON.parse(localStorage.getItem("announcements"));
+
+  list.push({
+    message: announce.value,
+    createdBy: user.email,
+    createdAt: new Date()
+  });
+
+  localStorage.setItem("announcements", JSON.stringify(list));
+
+  alert("Posted ✅");
+}
+
+/* SUBMISSIONS */
+function loadSubmissions(){
+  const subs = JSON.parse(localStorage.getItem("submissions"));
+
+  let html = "";
+
+  subs.forEach((s, i)=>{
+    html += `
+      <div>
+        ${s.studentEmail} - ${s.courseName || ""}
+        <br>
+        <input placeholder="Grade %" onchange="grade(${i},this.value)">
+      </div>
+    `;
+  });
+
+  document.getElementById("submissions").innerHTML = html;
+}
+
+/* GRADING */
+function grade(index, score){
+
+  let subs = JSON.parse(localStorage.getItem("submissions"));
+
+  let remark = "Fail";
+  if(score >= 80) remark = "Excellent";
+  else if(score >= 60) remark = "Pass";
+  else if(score >= 50) remark = "Credit";
+
+  subs[index].grade = score;
+  subs[index].remark = remark;
+
+  localStorage.setItem("submissions", JSON.stringify(subs));
+
+  alert("Graded ✅");
+}
+
+/* ZOOM */
+function saveZoom(){
+  let list = JSON.parse(localStorage.getItem("liveClasses"));
+
+  list.push({
+    course: selectedCourse,
+    link: zoomLink.value,
+    createdAt: new Date()
+  });
+
+  localStorage.setItem("liveClasses", JSON.stringify(list));
+
+  alert("Live class started 🎥");
+}
+
+/* RESULT SLIP */
+function generateSlip(){
+  const email = studentEmail.value;
+
+  const subs = JSON.parse(localStorage.getItem("submissions"));
+
+  let text = "RESULT SLIP\n\n";
+
+  subs.forEach(s=>{
+    if(s.studentEmail === email){
+      text += `${s.courseName}: ${s.grade || "Pending"}% (${s.remark || "-"})\n`;
+    }
+  });
+
+  const win = window.open();
+  win.document.write("<pre>"+text+"</pre>");
+  win.print();
+}
+
+/* LOGOUT */
+function logout(){
+  localStorage.removeItem("currentUser");
+  location.href = "login.html";
+}
+
+/* INIT */
+loadCourses();
+loadSubmissions();
+</script>
+
+</body>
+</html>

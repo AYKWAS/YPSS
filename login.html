@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>YPSS CLASS Login</title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial;
+      background: linear-gradient(135deg,#8b0000,#2b6cff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .box {
+      background: white;
+      padding: 30px;
+      border-radius: 14px;
+      width: 340px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    h2 {
+      text-align: center;
+      color: #8b0000;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #8b0000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    button:hover {
+      background: #a00000;
+    }
+
+    #msg {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: gray;
+    }
+
+    .signup-btn {
+      background: transparent;
+      color: #8b0000;
+      border: 2px solid #8b0000;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .signup-btn:hover {
+      background: #8b0000;
+      color: white;
+    }
+
+    .small-text {
+      text-align: center;
+      font-size: 12px;
+      margin-top: 10px;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>🎓 YPSS CLASS Login</h2>
+
+  <input id="loginInput" placeholder="Registration Number or Email">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="loginUser()">Login</button>
+  <button class="signup-btn" onclick="goSignup()">Create New Account</button>
+
+  <p class="small-text">Don’t have an account? Sign up in seconds</p>
+
+  <p id="msg"></p>
+  <p id="loading" class="loading">Logging in...</p>
+</div>
+
+<script>
+/* INIT STORAGE */
+if (!localStorage.getItem("users")) {
+  localStorage.setItem("users", JSON.stringify([]));
+}
+
+/* NAV */
+function goSignup() {
+  window.location.href = "signup.html";
+}
+
+/* LOGIN */
+function loginUser() {
+
+  const input = document.getElementById("loginInput").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  const msg = document.getElementById("msg");
+  const loading = document.getElementById("loading");
+
+  msg.innerText = "";
+  loading.style.display = "block";
+
+  if (!input || !password) {
+    msg.innerText = "Fill all fields";
+    loading.style.display = "none";
+    return;
+  }
+
+  let users = JSON.parse(localStorage.getItem("users"));
+
+  // detect email or regNo
+  let user = users.find(u =>
+    (u.email === input || u.regNo === input) &&
+    u.password === password
+  );
+
+  if (!user) {
+    msg.innerText = "Invalid login details";
+    loading.style.display = "none";
+    return;
+  }
+
+  // save session
+  localStorage.setItem("currentUser", JSON.stringify(user));
+
+  loading.style.display = "none";
+
+  // ROLE REDIRECT
+  if (user.role === "admin") {
+    location.href = "admin.html";
+  }
+  else if (user.role === "lecturer") {
+    location.href = "lecturer.html";
+  }
+  else {
+    location.href = "dashboard.html";
+  }
+}
+</script>
+
+</body>
+</html>
