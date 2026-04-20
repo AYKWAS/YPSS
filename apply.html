@@ -76,6 +76,9 @@
 
 <body>
 
+<head>
+  <img src="images/logo.png" style="width:120px;">
+</head>
 <div class="box">
   <h2>🎓 Admission Form</h2>
 
@@ -84,13 +87,13 @@
   <input id="phone" placeholder="Phone">
   <input id="age" placeholder="Age">
 
-  <input id="school" placeholder="Previous School">
+  <input id="school" placeholder="Current School">
 
   <select id="course">
     <option value="">Select Course</option>
     <option>Computer Science</option>
-    <option>Business</option>
-    <option>Education</option>
+    <option>Biology</option>
+    <option>Chemistry</option>
   </select>
 
   <textarea id="grades" placeholder="Academic Records"></textarea>
@@ -129,7 +132,7 @@ function apply() {
     email,
     phone,
     age,
-    previousSchool: school,
+    currentSchool: school,
     courseApplied: course,
     grades,
     status: "pending",
