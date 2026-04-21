@@ -149,6 +149,11 @@ function apply() {
   document.getElementById("course").value = "";
 }
 </script>
+<script type="module">
+  import { supabase } from "./supabase.js";
+
+  window.supabase = supabase;
+</script>
 
 </body>
 </html>

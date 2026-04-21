@@ -258,6 +258,11 @@ function logout(){
 loadCourses();
 loadSubmissions();
 </script>
+<script type="module">
+  import { supabase } from "./supabase.js";
+
+  window.supabase = supabase;
+</script>
 
 </body>
 </html>

@@ -180,6 +180,27 @@ function loadCourses(){
     `;
   });
 }
+async function loadCourses() {
+  const { data, error } = await supabase
+    .from("courses")
+    .select("*");
+
+  if (error) console.log(error);
+
+  return data;
+}
+async function displayCourses() {
+  const courses = await loadCourses();
+
+  const container = document.getElementById("courses");
+
+  container.innerHTML = courses.map(c => `
+    <div class="course-card">
+      <h3>${c.title}</h3>
+      <p>${c.description}</p>
+    </div>
+  `).join("");
+}
 
 /* ANNOUNCEMENTS */
 function loadAnnouncements(){
@@ -256,6 +277,11 @@ loadCourses();
 loadAnnouncements();
 loadGrades();
 loadChat();
+</script>
+<script type="module">
+  import { supabase } from "./supabase.js";
+
+  window.supabase = supabase;
 </script>
 
 </body>

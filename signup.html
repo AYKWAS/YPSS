@@ -176,6 +176,28 @@ function signup() {
 
   location.href = "login.html";
 }
+async function signUp(email, password, name) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password
+  });
+
+  if (error) return console.log(error);
+
+  await supabase.from("users").insert([
+    {
+      id: data.user.id,
+      email,
+      name,
+      role: "student"
+    }
+  ]);
+}
+</script>
+<script type="module">
+  import { supabase } from "./supabase.js";
+
+  window.supabase = supabase;
 </script>
 
 </body>

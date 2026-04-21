@@ -192,6 +192,13 @@ function delCourse(index){
   localStorage.setItem("courses", JSON.stringify(courses));
   loadCourses();
 }
+async function createCourse(title, description) {
+  const { data, error } = await supabase
+    .from("courses")
+    .insert([{ title, description }]);
+
+  if (error) console.log(error);
+}
 
 /* USERS */
 function loadUsers(){
@@ -320,6 +327,11 @@ function logout(){
 
 /* START */
 loadAll();
+</script>
+<script type="module">
+  import { supabase } from "./supabase.js";
+
+  window.supabase = supabase;
 </script>
 
 </body>

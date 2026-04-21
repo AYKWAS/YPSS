@@ -181,6 +181,21 @@ function loginUser() {
     location.href = "dashboard.html";
   }
 }
+async function login(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) return console.log(error);
+
+  return data;
+}
+</script>
+<script type="module">
+  import { supabase } from "./supabase.js";
+
+  window.supabase = supabase;
 </script>
 
 </body>

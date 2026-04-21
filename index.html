@@ -97,6 +97,11 @@
       window.location.href = "login.html";
     }, 3200);
   </script>
+  <script type="module">
+  import { supabase } from "./supabase.js";
+
+  window.supabase = supabase;
+</script>
 
 </body>
 </html>

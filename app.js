@@ -64,6 +64,13 @@ function login(email, password) {
     window.location.href = "dashboard.html";
   }
 }
+async function enroll(course_id, user_id) {
+  const { data, error } = await supabase
+    .from("enrollments")
+    .insert([{ course_id, user_id }]);
+
+  if (error) console.log(error);
+}
 
 /* ================= LOGOUT ================= */
 function logout() {
