@@ -4,16 +4,29 @@
   <title>YPSS CLASS - Lecturer Pro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body { margin:0; font-family:Arial; background:#0f2027; color:white; }
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    .sidebar {
-      width:220px; height:100vh;
-      background:#8b0000; position:fixed;
-      padding:20px;
+  <style>
+    body {
+      margin:0;
+      font-family:Arial;
+      background:#0f2027;
+      color:white;
     }
 
-    .main { margin-left:240px; padding:20px; }
+    .sidebar {
+      width:220px;
+      height:100vh;
+      background:#8b0000;
+      position:fixed;
+      padding:20px;
+      box-sizing:border-box;
+    }
+
+    .main {
+      margin-left:240px;
+      padding:20px;
+    }
 
     .card {
       background:#1c1c1c;
@@ -25,10 +38,12 @@
     button {
       background:#00c6ff;
       border:none;
-      padding:8px 12px;
+      padding:10px 14px;
       border-radius:6px;
       cursor:pointer;
-      margin-top:5px;
+      margin-top:8px;
+      color:white;
+      font-weight:bold;
     }
 
     input, textarea, select {
@@ -37,73 +52,128 @@
       margin:5px 0;
       border-radius:6px;
       border:none;
+      box-sizing:border-box;
+    }
+
+    .courseItem{
+      background:rgba(255,255,255,0.1);
+      padding:12px;
+      border-radius:8px;
+      margin-bottom:10px;
+      cursor:pointer;
+    }
+
+    .courseItem:hover{
+      background:rgba(255,255,255,0.2);
+    }
+
+    .submission{
+      background:rgba(255,255,255,0.08);
+      padding:12px;
+      border-radius:8px;
+      margin-bottom:10px;
+    }
+
+    .logo{
+      width:120px;
+      display:block;
+      margin-bottom:20px;
     }
 
     @media(max-width:768px){
-      .sidebar{display:none;}
-      .main{margin:0;}
+
+      .sidebar{
+        display:none;
+      }
+
+      .main{
+        margin-left:0;
+        padding:15px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <head>
-    <img src="images/logo.png" style="width:120px;">
-  </head>
 
 <div class="sidebar">
+  <img src="images/logo.png" class="logo">
+
   <h2>👨‍🏫 Lecturer</h2>
+
   <button onclick="logout()">Logout</button>
 </div>
 
 <div class="main">
 
+  <!-- COURSES -->
   <div class="card">
-    <h3>📚 Courses</h3>
-    <div id="courses"></div>
+    <h3>📚 Subjects</h3>
+    <div id="courses">Loading...</div>
   </div>
 
+  <!-- ADD CONTENT -->
   <div class="card">
-    <h3 id="selected">Select Course</h3>
+    <h3 id="selected">Select Subject</h3>
 
-    <input id="matTitle" placeholder="Title">
+    <input id="folderName" placeholder="Folder Name (Example: Week 1 Notes)">
+
     <select id="matType">
-      <option value="note">Note</option>
-      <option value="youtube">YouTube</option>
-      <option value="link">Link</option>
-      <option value="video">Video URL</option>
+      <option value="notes">Notes</option>
+      <option value="videos">Video</option>
+      <option value="lessons">Lesson Link</option>
     </select>
 
-    <input id="matContent" placeholder="Content / URL">
-    <button onclick="addMaterial()">Add Content</button>
+    <input id="matTitle" placeholder="Content Title">
+
+    <input id="matContent" placeholder="Paste URL / Link">
+
+    <button onclick="addMaterial()">Upload Content</button>
   </div>
 
+  <!-- ANNOUNCEMENTS -->
   <div class="card">
     <h3>📢 Post Announcement</h3>
-    <textarea id="announce"></textarea>
-    <button onclick="postAnnouncement()">Post</button>
+
+    <textarea id="announce" placeholder="Write announcement"></textarea>
+
+    <button onclick="postAnnouncement()">Post Announcement</button>
   </div>
 
+  <!-- SUBMISSIONS -->
   <div class="card">
     <h3>📝 Student Submissions</h3>
+
     <div id="submissions"></div>
   </div>
 
+  <!-- LIVE CLASS -->
   <div class="card">
     <h3>🎥 Live Class (Zoom)</h3>
-    <input id="zoomLink" placeholder="Paste Zoom link">
-    <button onclick="saveZoom()">Start Class</button>
+
+    <input id="zoomLink" placeholder="Paste Zoom Link">
+
+    <button onclick="saveZoom()">Start Live Class</button>
   </div>
 
+  <!-- RESULT SLIP -->
   <div class="card">
     <h3>🧾 Generate Result Slip</h3>
+
     <input id="studentEmail" placeholder="Student Email">
-    <button onclick="generateSlip()">Generate</button>
+
+    <button onclick="generateSlip()">Generate Result Slip</button>
   </div>
 
 </div>
 
 <script>
+
+const supabaseClient = window.supabase.createClient(
+  "https://fwpkvimozkyshshosbgx.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3cGt2aW1vemt5c2hzaG9zYmd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNzM0MTksImV4cCI6MjA5MTQ5NDE5fQ.Q8IPJ-H-5HvTHSDDfgLCq0veuhbvLUXTEo20B2cdEa4"
+);
+
 const user = JSON.parse(localStorage.getItem("currentUser"));
 
 if (!user) {
@@ -118,150 +188,263 @@ if (user.role !== "lecturer" && user.role !== "admin") {
 
 let selectedCourse = "";
 
-/* INIT STORAGE */
-["courses","materials","submissions","announcements","liveClasses"].forEach(k=>{
-  if(!localStorage.getItem(k)){
-    localStorage.setItem(k, JSON.stringify([]));
-  }
-});
+/* LOAD SUBJECTS */
+async function loadCourses(){
 
-/* COURSES */
-function loadCourses(){
-  const courses = JSON.parse(localStorage.getItem("courses"));
-
-  let html = "";
-  courses.forEach(c=>{
-    html += `<div onclick="selectCourse('${c.name}')">${c.name}</div>`;
-  });
-
-  document.getElementById("courses").innerHTML = html;
-}
-
-function selectCourse(name){
-  selectedCourse = name;
-  document.getElementById("selected").innerText = name;
-}
-
-/* MATERIALS */
-function addMaterial(){
-  if(!selectedCourse) return alert("Select course");
-
-  let materials = JSON.parse(localStorage.getItem("materials"));
-
-  materials.push({
-    courseName: selectedCourse,
-    title: matTitle.value,
-    type: matType.value,
-    content: matContent.value,
-    createdBy: user.email,
-    createdAt: new Date()
-  });
-
-  localStorage.setItem("materials", JSON.stringify(materials));
-
-  alert("Content added ✅");
-}
-
-/* ANNOUNCEMENTS */
-function postAnnouncement(){
-  let list = JSON.parse(localStorage.getItem("announcements"));
-
-  list.push({
-    message: announce.value,
-    createdBy: user.email,
-    createdAt: new Date()
-  });
-
-  localStorage.setItem("announcements", JSON.stringify(list));
-
-  alert("Posted ✅");
-}
-
-/* SUBMISSIONS */
-function loadSubmissions(){
-  const subs = JSON.parse(localStorage.getItem("submissions"));
+  const { data = [] } = await supabaseClient
+    .from("subjects")
+    .select("*");
 
   let html = "";
 
-  subs.forEach((s, i)=>{
+  data.forEach(c=>{
+
     html += `
-      <div>
-        ${s.studentEmail} - ${s.courseName || ""}
-        <br>
-        <input placeholder="Grade %" onchange="grade(${i},this.value)">
+      <div class="courseItem" onclick="selectCourse('${c.title}')">
+        📚 ${c.title}
       </div>
     `;
   });
 
-  document.getElementById("submissions").innerHTML = html;
+  document.getElementById("courses").innerHTML =
+    html || "No subjects available";
 }
 
-/* GRADING */
-function grade(index, score){
+/* SELECT SUBJECT */
+function selectCourse(name){
 
-  let subs = JSON.parse(localStorage.getItem("submissions"));
+  selectedCourse = name;
 
-  let remark = "Fail";
-  if(score >= 80) remark = "Excellent";
-  else if(score >= 60) remark = "Pass";
-  else if(score >= 50) remark = "Credit";
-
-  subs[index].grade = score;
-  subs[index].remark = remark;
-
-  localStorage.setItem("submissions", JSON.stringify(subs));
-
-  alert("Graded ✅");
+  document.getElementById("selected").innerText =
+    "Selected Subject: " + name;
 }
 
-/* ZOOM */
-function saveZoom(){
-  let list = JSON.parse(localStorage.getItem("liveClasses"));
+/* ADD MATERIAL */
+async function addMaterial(){
 
-  list.push({
-    course: selectedCourse,
-    link: zoomLink.value,
-    createdAt: new Date()
+  if(!selectedCourse){
+    alert("Select subject first");
+    return;
+  }
+
+  const folderName = document.getElementById("folderName").value.trim();
+  const type = document.getElementById("matType").value;
+  const title = document.getElementById("matTitle").value.trim();
+  const content = document.getElementById("matContent").value.trim();
+
+  if(!folderName || !title || !content){
+    alert("Fill all fields");
+    return;
+  }
+
+  /* CREATE FOLDER */
+  const { error: folderError } = await supabaseClient
+    .from("folders")
+    .insert({
+      subject: selectedCourse,
+      type: type,
+      name: folderName
+    });
+
+  if(folderError && !folderError.message.includes("duplicate")){
+    console.log(folderError);
+  }
+
+  /* ADD CONTENT */
+  const { error } = await supabaseClient
+    .from("materials")
+    .insert({
+      subject: selectedCourse,
+      folder: folderName,
+      title: title,
+      type: type,
+      content: content,
+      created_by: user.email
+    });
+
+  if(error){
+    console.log(error);
+    alert("Upload failed");
+    return;
+  }
+
+  alert("Content uploaded successfully ✅");
+
+  document.getElementById("folderName").value = "";
+  document.getElementById("matTitle").value = "";
+  document.getElementById("matContent").value = "";
+}
+
+/* POST ANNOUNCEMENT */
+async function postAnnouncement(){
+
+  const message = document.getElementById("announce").value.trim();
+
+  if(!message){
+    alert("Write announcement");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("announcements")
+    .insert({
+      message: message
+    });
+
+  if(error){
+    console.log(error);
+    alert("Failed");
+    return;
+  }
+
+  alert("Announcement posted ✅");
+
+  document.getElementById("announce").value = "";
+}
+
+/* LOAD SUBMISSIONS */
+async function loadSubmissions(){
+
+  const { data = [] } = await supabaseClient
+    .from("submissions")
+    .select("*");
+
+  let html = "";
+
+  data.forEach((s, i)=>{
+
+    html += `
+      <div class="submission">
+
+        <b>${s.studentEmail || "-"}</b><br><br>
+
+        Subject:
+        ${s.subject || "-"}<br><br>
+
+        <input
+          placeholder="Enter Grade %"
+          onchange="grade('${s.id}', this.value)"
+        >
+
+      </div>
+    `;
   });
 
-  localStorage.setItem("liveClasses", JSON.stringify(list));
-
-  alert("Live class started 🎥");
+  document.getElementById("submissions").innerHTML =
+    html || "No submissions";
 }
 
-/* RESULT SLIP */
-function generateSlip(){
-  const email = studentEmail.value;
+/* GRADE */
+async function grade(id, score){
 
-  const subs = JSON.parse(localStorage.getItem("submissions"));
+  let remark = "Fail";
+
+  if(score >= 80){
+    remark = "Excellent";
+  }
+  else if(score >= 60){
+    remark = "Pass";
+  }
+  else if(score >= 50){
+    remark = "Credit";
+  }
+
+  const { error } = await supabaseClient
+    .from("submissions")
+    .update({
+      grade: score,
+      remark: remark
+    })
+    .eq("id", id);
+
+  if(error){
+    console.log(error);
+    alert("Failed");
+    return;
+  }
+
+  alert("Graded successfully ✅");
+}
+
+/* SAVE LIVE CLASS */
+async function saveZoom(){
+
+  if(!selectedCourse){
+    alert("Select subject first");
+    return;
+  }
+
+  const link = document.getElementById("zoomLink").value.trim();
+
+  if(!link){
+    alert("Paste Zoom link");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("live_classes")
+    .insert({
+      subject: selectedCourse,
+      link: link
+    });
+
+  if(error){
+    console.log(error);
+    alert("Failed");
+    return;
+  }
+
+  alert("Live class started 🎥");
+
+  document.getElementById("zoomLink").value = "";
+}
+
+/* GENERATE RESULT SLIP */
+async function generateSlip(){
+
+  const email = document.getElementById("studentEmail").value.trim();
+
+  if(!email){
+    alert("Enter student email");
+    return;
+  }
+
+  const { data = [] } = await supabaseClient
+    .from("submissions")
+    .select("*")
+    .eq("studentEmail", email);
 
   let text = "RESULT SLIP\n\n";
 
-  subs.forEach(s=>{
-    if(s.studentEmail === email){
-      text += `${s.courseName}: ${s.grade || "Pending"}% (${s.remark || "-"})\n`;
-    }
+  data.forEach(s=>{
+
+    text += `
+Subject: ${s.subject || "-"}
+Grade: ${s.grade || "Pending"}%
+Remark: ${s.remark || "-"}
+-------------------------
+`;
   });
 
   const win = window.open();
+
   win.document.write("<pre>"+text+"</pre>");
+
   win.print();
 }
 
 /* LOGOUT */
 function logout(){
+
   localStorage.removeItem("currentUser");
+
   location.href = "login.html";
 }
 
 /* INIT */
 loadCourses();
 loadSubmissions();
-</script>
-<script type="module">
-  import { supabase } from "./supabase.js";
 
-  window.supabase = supabase;
 </script>
 
 </body>
